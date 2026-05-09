@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { User } from "lucide-react";
 import { EditProfileName } from "@/components/admin/edit-profile-name";
+import { createClient } from "@supabase/supabase-js";
+import { supabaseUrl } from "@/lib/supabase/config";
 
 export default async function AdminOverviewPage() {
   const supabase = await createServerSupabaseClient();
@@ -11,8 +13,15 @@ export default async function AdminOverviewPage() {
 
   if (!userData?.user) return null;
 
+  // Use admin client to bypass RLS since public.instructors has no SELECT policy
+  const supabaseAdmin = createClient(
+    supabaseUrl, 
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+  );
+
   // Fetch Instructor Info
-  const { data: instructor } = await supabase
+  const { data: instructor } = await supabaseAdmin
     .from("instructors")
     .select("name")
     .eq("id", userData.user.id)
