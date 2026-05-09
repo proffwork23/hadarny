@@ -82,3 +82,19 @@ export async function submitAttendance(sessionId: string, studentCode: string, s
 
   return { success: true };
 }
+
+export async function verifyStudentCode(studentCode: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("students")
+    .select("student_code")
+    .eq("student_code", studentCode)
+    .single();
+
+  if (!data) {
+    return { success: false, error: "الكود الجامعي غير مسجل في المنظومة. يرجى التأكد من الكود." };
+  }
+
+  return { success: true };
+}
+

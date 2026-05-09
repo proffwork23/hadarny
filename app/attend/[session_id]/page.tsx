@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { getSessionOptions, submitAttendance } from "@/app/actions/attendance";
+import { getSessionOptions, submitAttendance, verifyStudentCode } from "@/app/actions/attendance";
 
 export default function StudentAttendPage() {
   const { session_id } = useParams() as { session_id: string };
@@ -15,6 +15,7 @@ export default function StudentAttendPage() {
   const [courseTitle, setCourseTitle] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [success, setSuccess] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   
   // Anti-cheat states
   const [fails, setFails] = useState(0);
@@ -71,11 +72,22 @@ export default function StudentAttendPage() {
     }
   };
 
-  const handleSaveCode = (e: React.FormEvent) => {
+  const handleSaveCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentCode.trim()) return;
-    localStorage.setItem("hadarni_student_code", studentCode);
-    setIsCodeSaved(true);
+
+    setIsVerifying(true);
+    setErrorMsg("");
+    
+    const res = await verifyStudentCode(studentCode.trim());
+    setIsVerifying(false);
+
+    if (res.success) {
+      localStorage.setItem("hadarni_student_code", studentCode.trim());
+      setIsCodeSaved(true);
+    } else {
+      setErrorMsg(res.error || "خطأ غير معروف");
+    }
   };
 
   const handleSelectOTP = async (otp: string) => {
@@ -155,8 +167,8 @@ export default function StudentAttendPage() {
                 placeholder="مثال: 20210015"
               />
             </div>
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition">
-              متابعة
+            <button type="submit" disabled={isVerifying} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50">
+              {isVerifying ? "جاري التحقق..." : "متابعة"}
             </button>
           </form>
         ) : (
