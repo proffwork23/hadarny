@@ -96,7 +96,7 @@ export default async function AdminOverviewPage() {
               <span className="font-bold">{studentCount || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="opacity-60">الجلسات المنعقدة</span>
+              <span className="opacity-60">سجلات التحضير</span>
               <span className="font-bold">{sessionCount || 0}</span>
             </div>
           </div>
@@ -107,8 +107,8 @@ export default async function AdminOverviewPage() {
           <h2 className="text-lg font-bold">إجراءات سريعة</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Link href="/admin/attendance" className="glass-panel p-5 rounded-2xl flex flex-col gap-2 hover:bg-blue-500/5 transition group">
-              <h3 className="text-base font-bold text-blue-600 dark:text-blue-400 group-hover:underline">بدء جلسة تحضير</h3>
-              <p className="text-xs opacity-60">افتح جلسة جديدة واعرض QR Code للطلاب لتسجيل الحضور.</p>
+              <h3 className="text-base font-bold text-blue-600 dark:text-blue-400 group-hover:underline">بدء سجل تحضير</h3>
+              <p className="text-xs opacity-60">افتح سجل جديد واعرض QR Code للطلاب لتسجيل الحضور.</p>
             </Link>
             <Link href="/admin/students" className="glass-panel p-5 rounded-2xl flex flex-col gap-2 hover:bg-blue-500/5 transition group">
               <h3 className="text-base font-bold text-blue-600 dark:text-blue-400 group-hover:underline">إدارة الطلاب</h3>

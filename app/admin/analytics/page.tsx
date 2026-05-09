@@ -46,7 +46,7 @@ export default async function AnalyticsPage() {
         </div>
 
         <div className="glass-panel p-6 rounded-2xl text-center space-y-2">
-          <p className="text-sm opacity-60 font-semibold">الجلسات المنعقدة</p>
+          <p className="text-sm opacity-60 font-semibold">سجلات التحضير المنعقدة</p>
           <p className="text-4xl font-black text-purple-600 dark:text-purple-400">{sessionCount || 0}</p>
         </div>
 

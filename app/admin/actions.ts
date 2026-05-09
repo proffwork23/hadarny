@@ -13,6 +13,7 @@ export async function adminLogoutAction() {
 export async function createCourseAction(prevState: any, formData: FormData) {
   const title = formData.get("title")?.toString().trim();
   const code = formData.get("code")?.toString().trim();
+  const courseType = formData.get("course_type")?.toString().trim() || "محاضرة";
 
   if (!title) {
     return { error: "يرجى إدخال اسم المادة" };
@@ -29,6 +30,7 @@ export async function createCourseAction(prevState: any, formData: FormData) {
     instructor_id: userData.user.id,
     title,
     code: code || null,
+    course_type: courseType,
   }]);
 
   if (error) {

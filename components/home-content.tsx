@@ -103,7 +103,7 @@ export function HomeContent() {
             </div>
             <div className="glass-panel rounded-xl p-5">
               <h4 className="font-bold text-blue-600 dark:text-blue-400 mb-1">هيكلة البيانات</h4>
-              <p className="text-xs opacity-70">نظام قواعد بيانات علائقي محكم لربط الجلسات بالطلاب بشكل قطعي.</p>
+              <p className="text-xs opacity-70">نظام قواعد بيانات علائقي محكم لربط سجلات التحضير بالطلاب بشكل قطعي.</p>
             </div>
           </div>
         </section>

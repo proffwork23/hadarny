@@ -42,6 +42,19 @@ export function CreateCourseForm() {
           />
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="course_type">نوع السجل</Label>
+          <select 
+            id="course_type"
+            name="course_type"
+            className="flex h-10 w-full rounded-md border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            defaultValue="محاضرة"
+          >
+            <option value="محاضرة">محاضرة</option>
+            <option value="سكشن">سكشن</option>
+          </select>
+        </div>
+
         {state?.error && (
           <p className="text-sm text-red-500 font-semibold">{state.error}</p>
         )}

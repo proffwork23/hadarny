@@ -11,17 +11,34 @@ export default function InstructorDashboard() {
   const [activeSession, setActiveSession] = useState<any>(null);
   const [otp, setOtp] = useState("");
   const [attendees, setAttendees] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   
   const supabase = createBrowserSupabaseClient();
 
   useEffect(() => {
-    // Fetch courses for instructor (assuming RLS or basic auth is setup)
+    // Fetch courses for instructor
     async function fetchCourses() {
-      const { data, error } = await supabase.from("courses").select("*");
+      const { data } = await supabase.from("courses").select("*");
       if (data) setCourses(data);
     }
     fetchCourses();
-  }, []);
+
+    // Fetch history
+    async function fetchHistory() {
+      const { data } = await supabase
+        .from("sessions")
+        .select(`
+          id,
+          opened_at,
+          closed_at,
+          is_active,
+          courses (title, course_type)
+        `)
+        .order("opened_at", { ascending: false });
+      if (data) setHistory(data);
+    }
+    fetchHistory();
+  }, [supabase]);
 
   // Real-time listener for attendance
   useEffect(() => {
@@ -65,7 +82,7 @@ export default function InstructorDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeSession]);
+  }, [activeSession, supabase]);
 
   // OTP Timer Loop (20s)
   useEffect(() => {
@@ -84,7 +101,7 @@ export default function InstructorDashboard() {
 
 
   const startSession = async () => {
-    if (!selectedCourse) return alert("اختر المادة أولاً");
+    if (!selectedCourse) return alert("اختر المادة / السكشن أولاً");
     
     const secretKey = generateSecret();
     
@@ -96,31 +113,49 @@ export default function InstructorDashboard() {
       
     if (error) {
       console.error(error);
-      alert("حدث خطأ أثناء بدء الجلسة");
+      alert("حدث خطأ أثناء بدء سجل التحضير");
       return;
     }
     
     setActiveSession(data);
+    // Add to history list immediately
+    setHistory(prev => [{
+      id: data.id,
+      opened_at: data.opened_at,
+      closed_at: null,
+      is_active: true,
+      courses: courses.find(c => c.id === selectedCourse)
+    }, ...prev]);
   };
 
   const closeSession = async () => {
     if (!activeSession) return;
     await supabase.from("sessions").update({ is_active: false, closed_at: new Date().toISOString() }).eq("id", activeSession.id);
+    
+    // Update history state
+    setHistory(prev => prev.map(s => s.id === activeSession.id ? { ...s, is_active: false, closed_at: new Date().toISOString() } : s));
+    
     setActiveSession(null);
     setAttendees([]);
   };
 
+  const formatDate = (dateString: string) => {
+    const d = new Date(dateString);
+    const dayName = d.toLocaleDateString("ar-EG", { weekday: "long" });
+    const date = d.toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
+    return `${dayName}، ${date}`;
+  };
 
   return (
     <div className="min-h-screen p-8 space-y-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-heading font-bold text-blue-600">إدارة الحضور (المُحاضر)</h1>
+        <h1 className="text-3xl font-heading font-bold text-blue-600">إدارة سجلات التحضير</h1>
       </div>
 
       {!activeSession ? (
-        <div className="max-w-xl mx-auto">
+        <div className="max-w-xl mx-auto space-y-8">
           <div className="glass-panel p-8 rounded-3xl space-y-6">
-            <h2 className="text-xl font-bold">بدء جلسة تحضير جديدة</h2>
+            <h2 className="text-xl font-bold">بدء سجل تحضير جديد</h2>
             <div>
               <label className="block mb-2 text-sm font-semibold">اختر المادة / السكشن</label>
               <select 
@@ -130,7 +165,7 @@ export default function InstructorDashboard() {
               >
                 <option value="">-- اختر --</option>
                 {courses.map(c => (
-                  <option key={c.id} value={c.id}>{c.title}</option>
+                  <option key={c.id} value={c.id}>{c.title} ({c.course_type})</option>
                 ))}
               </select>
             </div>
@@ -138,16 +173,44 @@ export default function InstructorDashboard() {
               onClick={startSession}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-bold transition"
             >
-              بدء الجلسة وعرض QR
+              بدء سجل التحضير وعرض QR
             </button>
             <p className="text-xs opacity-50 text-center">تأكد من رفع شيت الطلاب أولاً من صفحة &quot;الطلاب&quot;</p>
+          </div>
+
+          <div className="glass-panel p-8 rounded-3xl space-y-6">
+            <h2 className="text-xl font-bold">السجلات السابقة</h2>
+            {history.length === 0 ? (
+              <p className="opacity-60 text-sm">لا يوجد سجلات سابقة.</p>
+            ) : (
+              <div className="space-y-4">
+                {history.map((record) => {
+                  const courseData = Array.isArray(record.courses) ? record.courses[0] : record.courses;
+                  return (
+                    <div key={record.id} className="p-4 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 flex justify-between items-center">
+                      <div>
+                        <h3 className="font-bold">{courseData?.title} <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full">{courseData?.course_type || "محاضرة"}</span></h3>
+                        <p className="text-xs opacity-70 mt-1">{formatDate(record.opened_at)}</p>
+                      </div>
+                      <div className="text-xs font-bold">
+                        {record.is_active ? (
+                          <span className="text-green-500 bg-green-500/10 px-2 py-1 rounded-full">نشط الآن</span>
+                        ) : (
+                          <span className="text-red-500 bg-red-500/10 px-2 py-1 rounded-full">مغلق</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Projector View (QR & OTP) */}
           <div className="glass-panel p-10 rounded-3xl flex flex-col items-center justify-center text-center space-y-8 bg-blue-500/5">
-            <h2 className="text-2xl font-bold text-red-500 animate-pulse">الجلسة قيد التشغيل</h2>
+            <h2 className="text-2xl font-bold text-red-500 animate-pulse">سجل التحضير قيد التشغيل</h2>
             <div className="p-4 bg-white rounded-2xl shadow-xl">
               <QRCodeSVG 
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/attend/${activeSession.id}`} 
@@ -162,7 +225,7 @@ export default function InstructorDashboard() {
               onClick={closeSession}
               className="mt-8 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl font-bold transition shadow-lg shadow-red-500/25"
             >
-              إنهاء الجلسة وإغلاق التحضير
+              إنهاء سجل التحضير وإغلاقه
             </button>
           </div>
 

@@ -50,7 +50,7 @@ export default async function CoursesPage() {
                   href="/admin/attendance"
                   className="block text-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-bold transition"
                 >
-                  إدارة الجلسات &rarr;
+                  إدارة التحضير &rarr;
                 </Link>
               </div>
             ))}

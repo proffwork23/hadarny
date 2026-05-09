@@ -13,7 +13,7 @@ export async function getSessionOptions(sessionId: string) {
     .single();
 
   if (error || !session || !session.is_active) {
-    return { error: "الجلسة غير متاحة أو تم إغلاقها." };
+    return { error: "سجل التحضير غير متاح أو تم إغلاقه." };
   }
 
   // Generate current valid OTP and 3 fakes
@@ -39,7 +39,7 @@ export async function submitAttendance(sessionId: string, studentCode: string, s
     .single();
 
   if (!session || !session.is_active) {
-    return { success: false, error: "الجلسة مغلقة." };
+    return { success: false, error: "سجل التحضير مغلق." };
   }
 
   // 2. Validate OTP
@@ -75,7 +75,7 @@ export async function submitAttendance(sessionId: string, studentCode: string, s
 
   if (attError) {
     if (attError.code === "23505") { // Unique violation
-      return { success: false, error: "لقد قمت بتسجيل الحضور مسبقاً لهذه الجلسة." };
+      return { success: false, error: "لقد قمت بتسجيل الحضور مسبقاً في هذا السجل." };
     }
     return { success: false, error: "حدث خطأ أثناء تسجيل الحضور." };
   }

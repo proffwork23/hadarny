@@ -29,7 +29,7 @@ export default async function AdminLayout({
               <Link href="/admin" className="text-sm font-semibold hover:text-blue-500">الرئيسية</Link>
               <Link href="/admin/courses" className="text-sm font-semibold hover:text-blue-500">المواد الدراسية</Link>
               <Link href="/admin/students" className="text-sm font-semibold hover:text-blue-500">الطلاب</Link>
-              <Link href="/admin/attendance" className="text-sm font-semibold hover:text-blue-500">الجلسات (التحضير)</Link>
+              <Link href="/admin/attendance" className="text-sm font-semibold hover:text-blue-500">سجلات التحضير</Link>
               <Link href="/admin/analytics" className="text-sm font-semibold hover:text-blue-500">التحليلات</Link>
             </nav>
           </div>

@@ -99,7 +99,7 @@ export default function StudentAttendPage() {
           setCooldownTime(until);
           localStorage.setItem("hadarni_cooldown", until.toString());
         } else if (newFails >= 2) {
-          setErrorMsg("تم حظرك من الجلسة بسبب الإجابات الخاطئة المتكررة. يرجى التوجه للمحاضر.");
+          setErrorMsg("تم حظرك من سجل التحضير بسبب الإجابات الخاطئة المتكررة. يرجى التوجه للمحاضر.");
         }
       }
     }
@@ -120,7 +120,7 @@ export default function StudentAttendPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-panel p-8 rounded-3xl text-center max-w-md bg-red-500/10 border-red-500/30">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">تم الحظر من الجلسة</h1>
+          <h1 className="text-2xl font-bold text-red-600 mb-2">تم الحظر من سجل التحضير</h1>
           <p className="opacity-80">لقد تجاوزت الحد المسموح من المحاولات الخاطئة. يرجى التوجه للمحاضر لتسجيل حضورك يدوياً.</p>
         </div>
       </div>
