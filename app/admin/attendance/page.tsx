@@ -182,7 +182,7 @@ export default function InstructorDashboard() {
                     <p className="text-sm opacity-70">{att.students?.student_code} | {att.students?.academic_year}</p>
                   </div>
                   <div className="text-green-500">
-                    تم التحضير ✔️
+                    تم التحضير
                   </div>
                 </div>
               ))}
