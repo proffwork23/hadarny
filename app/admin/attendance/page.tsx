@@ -207,52 +207,51 @@ export default function InstructorDashboard() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Projector View (QR & OTP) */}
-          <div className="glass-panel p-10 rounded-3xl flex flex-col items-center justify-center text-center space-y-8 bg-blue-500/5">
-            <h2 className="text-2xl font-bold text-red-500 animate-pulse">سجل التحضير قيد التشغيل</h2>
-            <div className="p-4 bg-white rounded-2xl shadow-xl">
-              <QRCodeSVG 
-                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/attend/${activeSession.id}`} 
-                size={300} 
-              />
+        <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
+          {/* Top Bar for controls */}
+          <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center border-b border-black/5 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
+            <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400">سجل التحضير نشط الآن</h2>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span className="font-bold text-lg opacity-80">الحضور: {attendees.length}</span>
+              </div>
+              <button 
+                onClick={closeSession}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-lg shadow-red-500/25"
+              >
+                إنهاء وإغلاق السجل
+              </button>
             </div>
-            <div className="space-y-2">
-              <p className="text-sm opacity-70">رمز الدخول (يتغير كل 20 ثانية)</p>
-              <div className="text-6xl font-mono font-bold tracking-[0.2em] text-blue-600">{otp}</div>
-            </div>
-            <button 
-              onClick={closeSession}
-              className="mt-8 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl font-bold transition shadow-lg shadow-red-500/25"
-            >
-              إنهاء سجل التحضير وإغلاقه
-            </button>
           </div>
 
-          {/* Real-time Attendees List */}
-          <div className="glass-panel p-8 rounded-3xl">
-            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-              <h2 className="text-2xl font-bold">المحضر اللحظي</h2>
-              <span className="bg-green-500/20 text-green-600 px-4 py-1 rounded-full font-bold">
-                {attendees.length} طالب
-              </span>
+          {/* Main Massive Content */}
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-16 lg:gap-32 w-full max-w-[90vw] h-full pt-24 pb-8">
+            
+            {/* Massive QR */}
+            <div className="flex flex-col items-center gap-8 shrink-0">
+              <div className="p-8 bg-white rounded-[3rem] shadow-2xl border-8 border-blue-500/10">
+                <QRCodeSVG 
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/attend/${activeSession.id}`} 
+                  size={Math.min(typeof window !== 'undefined' ? window.innerHeight * 0.5 : 400, 500)} 
+                  includeMargin={false}
+                />
+              </div>
+              <p className="text-2xl opacity-60 font-bold">امسح الكود لتسجيل الحضور</p>
             </div>
-            <div className="overflow-y-auto max-h-[500px] pr-2 space-y-3">
-              {attendees.map((att, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20 rounded-xl transition-all duration-500 animate-in fade-in slide-in-from-right-4">
-                  <div>
-                    <p className="font-bold">{att.students?.name || "طالب غير معروف"}</p>
-                    <p className="text-sm opacity-70">{att.students?.student_code} | {att.students?.academic_year}</p>
-                  </div>
-                  <div className="text-green-500">
-                    تم التحضير
-                  </div>
-                </div>
-              ))}
-              {attendees.length === 0 && (
-                <p className="text-center opacity-50 py-10 italic">في انتظار تسجيل الطلاب...</p>
-              )}
+
+            {/* Massive OTP */}
+            <div className="flex flex-col items-center gap-6 text-center">
+              <p className="text-3xl opacity-60 font-bold">رمز الدخول الآمن</p>
+              <div className="text-[12vw] sm:text-[150px] leading-none font-mono font-black tracking-[0.1em] text-blue-600 drop-shadow-2xl">
+                {otp}
+              </div>
+              <p className="text-lg opacity-40 font-semibold mt-4">يتغير الرمز تلقائياً كل 20 ثانية</p>
             </div>
+
           </div>
         </div>
       )}
