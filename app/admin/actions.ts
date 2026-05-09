@@ -79,3 +79,68 @@ export async function updateProfileNameAction(prevState: any, formData: FormData
   revalidatePath("/admin");
   return { success: true };
 }
+
+export async function editCourseAction(prevState: any, formData: FormData) {
+  const id = formData.get("id")?.toString();
+  const title = formData.get("title")?.toString().trim();
+  const code = formData.get("code")?.toString().trim();
+  const courseType = formData.get("course_type")?.toString().trim() || "محاضرة";
+
+  if (!id || !title) {
+    return { error: "يرجى إدخال اسم المادة" };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: userData } = await supabase.auth.getUser();
+
+  if (!userData?.user) {
+    return { error: "غير مصرح" };
+  }
+
+  const { error } = await supabase
+    .from("courses")
+    .update({
+      title,
+      code: code || null,
+      course_type: courseType,
+    })
+    .eq("id", id)
+    .eq("instructor_id", userData.user.id);
+
+  if (error) {
+    console.error(error);
+    return { error: "حدث خطأ أثناء تعديل المادة" };
+  }
+
+  revalidatePath("/admin/courses");
+  revalidatePath("/admin/attendance");
+  return { success: true };
+}
+
+export async function deleteCourseAction(prevState: any, formData: FormData) {
+  const id = formData.get("id")?.toString();
+
+  if (!id) return { error: "معرف المادة غير موجود" };
+
+  const supabase = await createServerSupabaseClient();
+  const { data: userData } = await supabase.auth.getUser();
+
+  if (!userData?.user) {
+    return { error: "غير مصرح" };
+  }
+
+  const { error } = await supabase
+    .from("courses")
+    .delete()
+    .eq("id", id)
+    .eq("instructor_id", userData.user.id);
+
+  if (error) {
+    console.error(error);
+    return { error: "حدث خطأ أثناء الحذف" };
+  }
+
+  revalidatePath("/admin/courses");
+  revalidatePath("/admin/attendance");
+  return { success: true };
+}
