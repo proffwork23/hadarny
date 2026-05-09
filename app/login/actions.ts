@@ -44,6 +44,11 @@ export async function signupAction(prevState: any, formData: FormData) {
     return { error: error?.message || "فشل إنشاء الحساب." };
   }
 
+  // If email confirmation is enabled in Supabase, the user is created but session is null
+  if (!data.session) {
+    return { error: "تم إنشاء الحساب بنجاح. يرجى مراجعة بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول." };
+  }
+
   // Insert instructor profile
   const { error: profileError } = await supabase.from("instructors").insert({
     id: data.user.id,

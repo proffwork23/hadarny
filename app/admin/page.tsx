@@ -2,6 +2,8 @@ import { adminLogoutAction } from "@/app/admin/actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { User } from "lucide-react";
+import { EditProfileName } from "@/components/admin/edit-profile-name";
 
 export default async function AdminOverviewPage() {
   const supabase = await createServerSupabaseClient();
@@ -15,6 +17,8 @@ export default async function AdminOverviewPage() {
     .select("name")
     .eq("id", userData.user.id)
     .single();
+
+  const displayName = instructor?.name || userData.user.email?.split('@')[0] || "المستخدم";
 
   // Fetch real stats for this instructor
   const { data: courses } = await supabase
@@ -34,22 +38,32 @@ export default async function AdminOverviewPage() {
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 space-y-8">
       
       {/* Header & Logout */}
-      <section className="glass-panel rounded-3xl p-6 md:p-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-blue-600 dark:text-blue-400">
-            مرحباً، {instructor?.name || "دكتور"}
-          </h1>
-          <p className="mt-2 text-sm opacity-70 font-semibold">
-            لوحة التحكم الرئيسية لمنظومة حضّرني
-          </p>
+  <section className="glass-panel rounded-3xl p-6 md:p-8 flex items-center justify-between">
+    <div className="flex items-center gap-5">
+      {/* Profile Picture Circle */}
+      <div className="relative group shrink-0">
+        <div className="w-20 h-20 rounded-full bg-blue-500/10 border-2 border-blue-500/20 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:border-blue-600/50 shadow-inner">
+          <User className="w-10 h-10 text-blue-600 dark:text-blue-400" />
         </div>
+        <button className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg transform transition-transform group-hover:scale-110">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+      </div>
 
-        <form action={adminLogoutAction}>
-          <Button type="submit" variant="destructive" className="font-bold">
-            تسجيل الخروج
-          </Button>
-        </form>
-      </section>
+      <div>
+        <EditProfileName initialName={displayName} />
+        <p className="mt-2 text-sm opacity-70 font-semibold">
+          لوحة التحكم الرئيسية لمنظومة حضّرني
+        </p>
+      </div>
+    </div>
+
+    <form action={adminLogoutAction}>
+      <Button type="submit" variant="destructive" className="font-bold rounded-xl px-6">
+        تسجيل الخروج
+      </Button>
+    </form>
+  </section>
 
       {/* Profile & Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -58,7 +72,7 @@ export default async function AdminOverviewPage() {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="opacity-60">الاسم</span>
-              <span className="font-bold">{instructor?.name || "-"}</span>
+              <span className="font-bold">{displayName}</span>
             </div>
             <div className="flex justify-between">
               <span className="opacity-60">البريد الإلكتروني</span>
