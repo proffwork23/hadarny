@@ -200,7 +200,7 @@ export default function StudentsPage() {
   };
 
   const SortIcon = ({ field }: { field: SortKey }) => {
-    if (sortKey !== field) return <span className="opacity-30 mr-1">⇅</span>;
+    if (sortKey !== field) return null;
     return <span className="mr-1 text-blue-500">{sortAsc ? "↑" : "↓"}</span>;
   };
 
