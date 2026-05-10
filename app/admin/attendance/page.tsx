@@ -13,6 +13,11 @@ export default function InstructorDashboard() {
   const [attendees, setAttendees] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   
+  // Filters
+  const [filterCourse, setFilterCourse] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [filterDay, setFilterDay] = useState("");
+
   const supabase = createBrowserSupabaseClient();
 
   useEffect(() => {
@@ -32,7 +37,7 @@ export default function InstructorDashboard() {
           opened_at,
           closed_at,
           is_active,
-          courses (title, course_type)
+          courses (id, title, course_type)
         `)
         .order("opened_at", { ascending: false });
       if (data) setHistory(data);
@@ -146,6 +151,38 @@ export default function InstructorDashboard() {
     return `${dayName}، ${date}`;
   };
 
+  // Filter & Group Logic
+  const filteredHistory = history.filter(record => {
+    const courseData = Array.isArray(record.courses) ? record.courses[0] : record.courses;
+    if (filterCourse && courseData?.id !== filterCourse) return false;
+    
+    const recordDate = new Date(record.opened_at);
+    
+    if (filterDate) {
+      const selectedDate = new Date(filterDate);
+      if (recordDate.toDateString() !== selectedDate.toDateString()) return false;
+    }
+    
+    if (filterDay) {
+      const dayName = recordDate.toLocaleDateString("ar-EG", { weekday: "long" });
+      if (dayName !== filterDay) return false;
+    }
+    
+    return true;
+  });
+
+  const groupedHistory = filteredHistory.reduce((acc, record) => {
+    const courseData = Array.isArray(record.courses) ? record.courses[0] : record.courses;
+    const key = courseData?.id || "unknown";
+    if (!acc[key]) {
+      acc[key] = { course: courseData, records: [] };
+    }
+    acc[key].records.push(record);
+    return acc;
+  }, {} as Record<string, { course: any, records: any[] }>);
+
+  const daysOfWeek = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
   return (
     <div className="min-h-screen p-8 space-y-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
@@ -153,55 +190,124 @@ export default function InstructorDashboard() {
       </div>
 
       {!activeSession ? (
-        <div className="max-w-xl mx-auto space-y-8">
-          <div className="glass-panel p-8 rounded-3xl space-y-6">
-            <h2 className="text-xl font-bold">بدء سجل تحضير جديد</h2>
-            <div>
-              <label className="block mb-2 text-sm font-semibold">اختر المادة / السكشن</label>
-              <select 
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-3"
-                value={selectedCourse}
-                onChange={e => setSelectedCourse(e.target.value)}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <div className="lg:col-span-1 space-y-8">
+            {/* Start Session Block */}
+            <div className="glass-panel p-6 rounded-3xl space-y-6">
+              <h2 className="text-xl font-bold">بدء سجل تحضير جديد</h2>
+              <div>
+                <label className="block mb-2 text-sm font-semibold">اختر المادة / السكشن</label>
+                <select 
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-3 text-sm"
+                  value={selectedCourse}
+                  onChange={e => setSelectedCourse(e.target.value)}
+                >
+                  <option value="">-- اختر --</option>
+                  {courses.map(c => (
+                    <option key={c.id} value={c.id}>{c.title} ({c.course_type})</option>
+                  ))}
+                </select>
+              </div>
+              <button 
+                onClick={startSession}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-bold transition shadow-lg"
               >
-                <option value="">-- اختر --</option>
-                {courses.map(c => (
-                  <option key={c.id} value={c.id}>{c.title} ({c.course_type})</option>
-                ))}
-              </select>
+                بدء السجل وعرض QR
+              </button>
             </div>
-            <button 
-              onClick={startSession}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-bold transition"
-            >
-              بدء سجل التحضير وعرض QR
-            </button>
-            <p className="text-xs opacity-50 text-center">تأكد من رفع شيت الطلاب أولاً من صفحة &quot;الطلاب&quot;</p>
+            
+            {/* Filter Block */}
+            <div className="glass-panel p-6 rounded-3xl space-y-4">
+              <h2 className="text-lg font-bold flex items-center justify-between">
+                فلاتر البحث
+                {(filterCourse || filterDate || filterDay) && (
+                  <button onClick={() => {setFilterCourse(''); setFilterDate(''); setFilterDay('');}} className="text-xs text-red-500 hover:underline">
+                    مسح الفلاتر
+                  </button>
+                )}
+              </h2>
+              
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold opacity-70">المادة</label>
+                  <select 
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-2 text-sm"
+                    value={filterCourse}
+                    onChange={e => setFilterCourse(e.target.value)}
+                  >
+                    <option value="">الكل</option>
+                    {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold opacity-70">التاريخ</label>
+                  <input 
+                    type="date"
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-2 text-sm"
+                    value={filterDate}
+                    onChange={e => setFilterDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold opacity-70">اليوم</label>
+                  <select 
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-2 text-sm"
+                    value={filterDay}
+                    onChange={e => setFilterDay(e.target.value)}
+                  >
+                    <option value="">الكل</option>
+                    {daysOfWeek.map(day => <option key={day} value={day}>{day}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="glass-panel p-8 rounded-3xl space-y-6">
-            <h2 className="text-xl font-bold">السجلات السابقة</h2>
-            {history.length === 0 ? (
-              <p className="opacity-60 text-sm">لا يوجد سجلات سابقة.</p>
+          <div className="lg:col-span-2 space-y-6">
+            <h2 className="text-2xl font-bold border-b border-black/10 dark:border-white/10 pb-4">السجلات السابقة</h2>
+            
+            {Object.keys(groupedHistory).length === 0 ? (
+              <div className="text-center p-12 border border-dashed border-black/20 dark:border-white/20 rounded-3xl">
+                <p className="opacity-60 font-semibold">لا يوجد سجلات تطابق بحثك.</p>
+              </div>
             ) : (
-              <div className="space-y-4">
-                {history.map((record) => {
-                  const courseData = Array.isArray(record.courses) ? record.courses[0] : record.courses;
-                  return (
-                    <div key={record.id} className="p-4 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 flex justify-between items-center">
-                      <div>
-                        <h3 className="font-bold">{courseData?.title} <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full">{courseData?.course_type || "محاضرة"}</span></h3>
-                        <p className="text-xs opacity-70 mt-1">{formatDate(record.opened_at)}</p>
-                      </div>
-                      <div className="text-xs font-bold">
-                        {record.is_active ? (
-                          <span className="text-green-500 bg-green-500/10 px-2 py-1 rounded-full">نشط الآن</span>
-                        ) : (
-                          <span className="text-red-500 bg-red-500/10 px-2 py-1 rounded-full">مغلق</span>
-                        )}
-                      </div>
+              <div className="space-y-8">
+                {Object.values(groupedHistory).map((group: any, idx) => (
+                  <div key={idx} className="glass-panel p-6 rounded-3xl space-y-4">
+                    <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center justify-between">
+                      {group.course?.title || "مادة غير معروفة"}
+                      <span className="bg-blue-500/10 text-blue-600 text-xs px-3 py-1 rounded-full">{group.course?.course_type || "محاضرة"}</span>
+                    </h3>
+                    
+                    <div className="space-y-3">
+                      {group.records.map((record: any) => (
+                        <div key={record.id} className="p-4 rounded-xl border border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 flex justify-between items-center hover:bg-black/10 transition">
+                          <div>
+                            <p className="font-bold text-sm">{formatDate(record.opened_at)}</p>
+                            <p className="text-xs opacity-60 mt-1 flex items-center gap-2">
+                              {record.is_active ? (
+                                <span className="flex h-2 w-2 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                              ) : (
+                                <span className="flex h-2 w-2 rounded-full bg-slate-400"></span>
+                              )}
+                              <span>{new Date(record.opened_at).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}</span>
+                            </p>
+                          </div>
+                          <div className="text-xs font-bold">
+                            {record.is_active ? (
+                              <span className="text-green-500 bg-green-500/10 px-3 py-1.5 rounded-lg">نشط الآن</span>
+                            ) : (
+                              <span className="text-slate-500 bg-slate-500/10 px-3 py-1.5 rounded-lg">مغلق</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
